@@ -4,6 +4,53 @@ var PossibleNumbersSets = [];
 var dontSolve = true;
 var firstTime = true; 
 
+function generateRandomPuzzle() {
+  var puzzle = [];
+  var random1 = Math.floor(Math.random() * 9);
+  var random2 = Math.floor(Math.random() * 9) + 9;
+  var random3 = Math.floor(Math.random() * 9) + 18;
+  var random4 = Math.floor(Math.random() * 9) + 27;
+  var random5 = Math.floor(Math.random() * 9) + 36;
+  var random6 = Math.floor(Math.random() * 9) + 45;
+  var random7 = Math.floor(Math.random() * 9) + 54;
+  var random8 = Math.floor(Math.random() * 9) + 63;
+  var random9 = Math.floor(Math.random() * 9) + 72;
+  var counter = 0;
+  for (var i = 0; i < 3; i++) {
+    puzzle[i] = [];
+    for (var j = 0; j < 3; j++) {
+      puzzle[i][j] = [];
+      for (var k = 0; k < 3; k++) {
+        puzzle[i][j][k] = [];
+        for (var l = 0; l < 3; l++) {
+          if(counter == random1 )
+            puzzle[i][j][k][l] = 1;
+          else if(counter == random2)
+            puzzle[i][j][k][l] = 2;
+          else if(counter == random3)
+            puzzle[i][j][k][l] = 3;
+          else if(counter == random4)
+            puzzle[i][j][k][l] = 4;
+          else if(counter == random5)
+            puzzle[i][j][k][l] = 5;
+          else if(counter == random6)
+            puzzle[i][j][k][l] = 6;
+          else if(counter == random7)
+            puzzle[i][j][k][l] = 7;
+          else if(counter == random8)
+            puzzle[i][j][k][l] = 8;
+          else if(counter == random9)
+            puzzle[i][j][k][l] = 9;
+          else
+            puzzle[i][j][k][l] = null;
+          counter++;
+        }
+      }
+    }
+  }
+  return puzzle;
+}
+
 function generatePuzzle() {
   for (var i = 0; i < 3; i++) {
     puzzle[i] = [];
@@ -18,6 +65,46 @@ function generatePuzzle() {
     }
   }
 }
+function generetRandom(){
+  puzzle = generateRandomPuzzle();
+  generatePossibleNumbersSets();
+  puzzle = solveSudoku(puzzle, PossibleNumbersSets);
+  const level = document.getElementById('level').value;
+  if(level == "1"){
+    removeRandom(50);
+  }
+  else if(level == "2"){
+    removeRandom(70);
+  }
+  else if(level == "3"){
+    removeRandom(85);
+  }
+  else if(level == "4"){
+    removeRandom(100);
+  }
+  generateSudoku(puzzle);
+}
+
+function removeRandom(num){
+  randomNumbersBetween0To80 = new Set();
+  for (var i = 0; i < num; i++) {
+    randomNumbersBetween0To80.add(Math.floor(Math.random() * 81));
+  }
+  var counter = 0;
+  for (var i = 0; i < 3; i++) {
+    for (var j = 0; j < 3; j++) {
+      for (var k = 0; k < 3; k++) {
+        for (var l = 0; l < 3; l++) {
+          if(randomNumbersBetween0To80.has(counter)){
+            puzzle[i][j][k][l] = null;
+          }
+          counter++;
+        }
+      }
+    }
+  }
+}
+
 
 function generatePossibleNumbersSets() {
   for (var i = 0; i < 3; i++) {
@@ -134,7 +221,6 @@ function solveSudoku(puzzle, PossibleNumbersSets) {
   var findCell = false;
   var noPlace = { value: false };  
   while (dontSolve) {
-    generateSudoku(newPuzzle);
     findCell = false;
     for (var i = 0; i < 3 && dontSolve; i++) {
       for (var j = 0; j < 3 && dontSolve; j++) {
@@ -149,7 +235,7 @@ function solveSudoku(puzzle, PossibleNumbersSets) {
               checkCube(i, j, k, l,newPuzzle,newPossibleNumbersSets,noPlace)
             ) {
               findCell = true;
-              generateSudoku(newPuzzle);
+        
             }
           }
         }
@@ -159,16 +245,13 @@ function solveSudoku(puzzle, PossibleNumbersSets) {
       for (var j = 0; j < 3; j++) {
         for (var k = 0; k < 3; k++) {
           for (var l = 0; l < 3; l++) {
-            if (newPuzzle[i][j][k][l] !== null) {
-              continue;
-            }
             if (
-              mustToBe(i, j, k, l,newPuzzle,newPossibleNumbersSets) ||
+              mustToBe(i, j, k, l,newPuzzle,newPossibleNumbersSets,noPlace) ||
               mustToBe2(i, j, k, l,newPuzzle,newPossibleNumbersSets) ||
               mustToBe3(i, j, k, l,newPuzzle,newPossibleNumbersSets)
             ) {
               findCell = true;
-              generateSudoku(newPuzzle);
+            
             }
           }
         }
@@ -188,7 +271,6 @@ function solveSudoku(puzzle, PossibleNumbersSets) {
       var jX;
       var kX;
       var lX;
-      console.log(newPossibleNumbersSets);
 
       for (var i = 0; i < 3; i++) {
         for (var j = 0; j < 3; j++) {
@@ -217,7 +299,6 @@ function solveSudoku(puzzle, PossibleNumbersSets) {
       }
 
       for (let value of newPossibleNumbersSets[iX][jX][kX][lX]) {
-        generateSudoku(newPuzzle);
         let puzzleForRecursive = copyArray(newPuzzle);
         let possibleNumbersSetsRecursive = copyArray(newPossibleNumbersSets);
         puzzleForRecursive[iX][jX][kX][lX] = value;
@@ -330,8 +411,11 @@ function checkCube(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets,noPlace) {
   return false;
 }
 
-function mustToBe(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
+function mustToBe(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets,noPlace) {
+  
   let setOfIndex = newPossibleNumbersSets[iP][jP][kP][lP]; 
+  let fullSet = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
   for (var j = 0; j < 3; j++) {
     for (var l = 0; l < 3; l++) {
       if (j == jP && l == lP) {
@@ -339,11 +423,16 @@ function mustToBe(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
       }
 
       setOfIndex = setDifference(setOfIndex, PossibleNumbersSets[iP][j][kP][l]);
+      fullSet = setDifference(fullSet, PossibleNumbersSets[iP][j][kP][l]);
 
     }
   }
+  if(fullSet.size > 1){
+    noPlace.value = true;
+    return false;
+  }
 
-  if (setOfIndex.size == 1) {
+  if (setOfIndex.size == 1 && newPuzzle[iP][jP][kP][lP] === null) {
     let value = setOfIndex.values().next().value;
     // Set the value of the puzzle cell to the only possible number
     newPuzzle[iP][jP][kP][lP] = value;
@@ -353,6 +442,7 @@ function mustToBe(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
   }
 
   setOfIndex = newPossibleNumbersSets[iP][jP][kP][lP];
+  fullSet = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 
   for (var i = 0; i < 3; i++) {
@@ -362,9 +452,16 @@ function mustToBe(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
       }
 
       setOfIndex = setDifference(setOfIndex, newPossibleNumbersSets[i][jP][k][lP]);
+      fullSet = setDifference(fullSet,newPossibleNumbersSets[i][jP][k][lP]);
+
     }
   }
-  if (setOfIndex.size == 1) {
+  if(fullSet.size > 1){
+    noPlace.value = true;
+    return false;
+  }
+
+  if (setOfIndex.size == 1 && newPuzzle[iP][jP][kP][lP] === null) { 
     let value = setOfIndex.values().next().value;
     // Set the value of the puzzle cell to the only possible number
     newPuzzle[iP][jP][kP][lP] = value;
@@ -374,6 +471,7 @@ function mustToBe(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
   }
 
   setOfIndex = newPossibleNumbersSets[iP][jP][kP][lP];
+  fullSet = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
   for (var k = 0; k < 3; k++) {
     for (var l = 0; l < 3; l++) {
@@ -381,9 +479,15 @@ function mustToBe(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
         continue;
       }
       setOfIndex = setDifference(setOfIndex, newPossibleNumbersSets[iP][jP][k][l]);
+      fullSet = setDifference(fullSet,newPossibleNumbersSets[iP][jP][k][l]);
     }
   }
-  if (setOfIndex.size == 1) {
+  if(fullSet.size > 1){
+    noPlace.value = true;
+    return false;
+  }
+
+  if (setOfIndex.size == 1 && newPuzzle[iP][jP][kP][lP] === null) {
     let value = setOfIndex.values().next().value;
     // Set the value of the puzzle cell to the only possible number
     newPuzzle[iP][jP][kP][lP] = value;
@@ -395,6 +499,9 @@ function mustToBe(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
 }
 
 function mustToBe2(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
+  if(newPuzzle[iP][jP][kP][lP] !== null){
+    return false;
+  }
   let setOfIndex = newPossibleNumbersSets[iP][jP][kP][lP];
   
   row = [];
@@ -448,6 +555,7 @@ function mustToBe2(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
   }
 
   if (setOfIndex.size == 1) {
+    
     let value = setOfIndex.values().next().value;
     // Set the value of the puzzle cell to the only possible number
     newPuzzle[iP][jP][kP][lP] = value;
@@ -459,6 +567,9 @@ function mustToBe2(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
 }
 
 function mustToBe3(iP, jP, kP, lP,newPuzzle,newPossibleNumbersSets) {
+  if(newPuzzle[iP][jP][kP][lP] !== null){
+    return false;
+  }
   let setOfIndex = newPossibleNumbersSets[iP][jP][kP][lP];
   
   var isFound = true;
